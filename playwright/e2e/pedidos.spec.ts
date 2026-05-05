@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test'
-import { generateOrderCode } from '../support/helpers'
+import { generateOrderCode, searchOrder } from '../support/helpers'
+import { OrderLockupPage} from '../support/pages/OrderLockupPage'
 
 //AAA - Arrange, Act, Assert
 
@@ -31,9 +32,8 @@ test.describe('Consulta de Pedido', ()=> {
     }
   
     //Act
-    // await page.getByTestId('search-order-id').fill()
-    await page.getByRole('textbox', { name: 'Número do Pedido' }).fill(order.number)
-    await page.getByTestId('search-order-button').click()
+    const orderLockupPage = new OrderLockupPage(page)
+    await orderLockupPage.searchOrder(order.number)
 
 
 
@@ -94,9 +94,9 @@ test.describe('Consulta de Pedido', ()=> {
 
 
     //Act
-    // await page.getByTestId('search-order-id').fill()
-    await page.getByRole('textbox', { name: 'Número do Pedido' }).fill(order.number)
-    await page.getByTestId('search-order-button').click()
+    const orderLockupPage = new OrderLockupPage(page)
+    await orderLockupPage.searchOrder(order.number)
+
 
     await expect(page.getByTestId(`order-result-${order.number}`)).toMatchAriaSnapshot(`
       - img
@@ -153,11 +153,9 @@ test.describe('Consulta de Pedido', ()=> {
       payment:'À Vista'
     }
 
-
     //Act
-    // await page.getByTestId('search-order-id').fill()
-    await page.getByRole('textbox', { name: 'Número do Pedido' }).fill(order.number)
-    await page.getByTestId('search-order-button').click()
+    const orderLockupPage = new OrderLockupPage(page)
+    await orderLockupPage.searchOrder(order.number)
 
     await expect(page.getByTestId(`order-result-${order.number}`)).toMatchAriaSnapshot(`
       - img
@@ -202,9 +200,9 @@ test.describe('Consulta de Pedido', ()=> {
 
     const order = generateOrderCode()
    
-    await page.getByRole('textbox', { name: 'Número do Pedido' }).fill(order)
-    await page.getByTestId('search-order-button').click()
-  
+   //ACT
+    const orderLockupPage = new OrderLockupPage(page)
+    await orderLockupPage.searchOrder(order)
   
     const title = page.getByRole('heading', { name: 'Pedido não encontrado' })
     await expect(title).toBeVisible()
