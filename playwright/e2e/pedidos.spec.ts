@@ -2,27 +2,31 @@ import { test, expect } from '@playwright/test'
 
 import { generateOrderCode } from '../support/helpers'
 
-import { OrderLockupPage } from '../support/pages/OrderLockupPage'
+import { OrderLockupPage, OrderDetails } from '../support/pages/OrderLockupPage'
+import { LandingPage } from '../support/pages/LandingPage'
+import { Navbar } from '../support/components/Navbar'
 
 /// AAA - Arrange, Act, Assert
 
 test.describe('Consulta de Pedido', () => {
 
-  test.beforeEach(async ({ page }) => {
-    // Arrange
-    await page.goto('http://localhost:5173/')
-    await expect(page.getByTestId('hero-section').getByRole('heading')).toContainText('Velô Sprint')
+  let orderLockupPage: OrderLockupPage
 
-    await page.getByRole('link', { name: 'Consultar Pedido' }).click()
-    await expect(page.getByRole('heading')).toContainText('Consultar Pedido')
+  test.beforeEach(async ({ page }) => {
+   
+    await new LandingPage(page).goto()  
+    await new Navbar(page).orderLockupLink()
+
+    orderLockupPage = new OrderLockupPage(page)
+    orderLockupPage.validatePageLoaded()
   })
 
   test('deve consultar um pedido aprovado', async ({ page }) => {
 
     // Test Data
-    const order = {
+    const order: OrderDetails = {
       number: 'VLO-RLJARM',
-      status: 'APROVADO' as const,
+      status: 'APROVADO',
       color: 'Lunar White',
       wheels: 'aero Wheels',
       customer: {
@@ -32,9 +36,7 @@ test.describe('Consulta de Pedido', () => {
       payment: 'À Vista'
     }
 
-    // Act  
-    const orderLockupPage = new OrderLockupPage(page)
-    await orderLockupPage.searchOrder(order.number)
+   await orderLockupPage.searchOrder(order.number)
 
     // Assert
     await expect(page.getByTestId(`order-result-${order.number}`)).toMatchAriaSnapshot(`
@@ -76,9 +78,9 @@ test.describe('Consulta de Pedido', () => {
 
     // //Teste Data
     // const order = 'VLO-UWXLMT'
-    const order = {
+    const order: OrderDetails = {
       number: 'VLO-UWXLMT',
-      status: 'REPROVADO' as const,
+      status: 'REPROVADO',
       color: 'Midnight Black',
       wheels: 'sport Wheels',
       customer: {
@@ -88,11 +90,9 @@ test.describe('Consulta de Pedido', () => {
       payment: 'À Vista'
     }
 
-    // Act  
-    const orderLockupPage = new OrderLockupPage(page)
     await orderLockupPage.searchOrder(order.number)
 
-    // Assert
+  
     await expect(page.getByTestId(`order-result-${order.number}`)).toMatchAriaSnapshot(`
       - img
       - paragraph: Pedido
@@ -130,7 +130,7 @@ test.describe('Consulta de Pedido', () => {
   test('deve consultar um pedido em analise', async ({ page }) => {
 
     // Test Data
-    const order = {
+    const order: OrderDetails = {
       number: 'VLO-P95460',
       status: 'EM_ANALISE' as const,
       color: 'Lunar White',
@@ -142,8 +142,6 @@ test.describe('Consulta de Pedido', () => {
       payment: 'À Vista'
     }
 
-    // Act  
-    const orderLockupPage = new OrderLockupPage(page)
     await orderLockupPage.searchOrder(order.number)
 
     // Assert
@@ -185,7 +183,6 @@ test.describe('Consulta de Pedido', () => {
 
     const order = generateOrderCode()
 
-    const orderLockupPage = new OrderLockupPage(page)
     await orderLockupPage.searchOrder(order)
 
 
