@@ -7,21 +7,25 @@ export type OrderDetails = {
   status: OrderStatus
   color: string
   wheels: string
-  customer: { name: string; email: string}
+  customer: { name: string; email: string }
   payment: string
 }
 
-export class OrderLockupPage {
-   constructor(private page: Page) { }
+export function createOrderLockupActions(page: Page) {
+  return {
+    async open() {
+      await page.goto('/')
+      const title = page.getByTestId('hero-section').getByRole('heading')
+      await expect(title).toContainText('Velô Sprint')
 
-   async validatePageLoaded() {
-    await expect(this.page.getByRole('heading')).toContainText('Consultar Pedido')
-  }
+      await page.getByRole('link', { name: 'Consultar Pedido' }).click()
+      await expect(page.getByRole('heading')).toContainText('Consultar Pedido')
+    },
 
     async searchOrder(code: string) {
-        await this.page.getByRole('textbox', { name: 'Número do Pedido' }).fill(code)
-        await this.page.getByRole('button', { name: 'Buscar Pedido' }).click()
-    }
+      await page.getByRole('textbox', { name: 'Número do Pedido' }).fill(code)
+      await page.getByRole('button', { name: 'Buscar Pedido' }).click()
+    },
 
     async validateOrderDetails(expected: OrderDetails) {
       const snapshot = `
@@ -53,8 +57,11 @@ export class OrderLockupPage {
       - paragraph: ${expected.payment}
       - paragraph: /R\\$ \\d+\\.\\d+,\\d+/
       `
-      await expect(this.page.getByTestId(`order-result-${expected.number}`)).toMatchAriaSnapshot(snapshot)
-    }
+
+      await expect(
+        page.getByTestId(`order-result-${expected.number}`),
+      ).toMatchAriaSnapshot(snapshot)
+    },
 
     async validateStatusBadge(status: OrderStatus) {
       const statusClasses = {
@@ -76,18 +83,20 @@ export class OrderLockupPage {
       } as const
 
       const classes = statusClasses[status]
-      const statusBadge = this.page.getByRole('status').filter({ hasText: status })
+      const statusBadge = page.getByRole('status').filter({ hasText: status })
 
       await expect(statusBadge).toHaveClass(new RegExp(classes.background))
       await expect(statusBadge).toHaveClass(new RegExp(classes.text))
       await expect(statusBadge.locator('svg')).toHaveClass(new RegExp(classes.icon))
-    }
+    },
 
     async validateOrderNotFound() {
-      await expect(this.page.locator('#root')).toMatchAriaSnapshot(`
+      await expect(page.locator('#root')).toMatchAriaSnapshot(`
       - img
       - heading "Pedido não encontrado" [level=3]
       - paragraph: Verifique o número do pedido e tente novamente
       `)
-    }
+    },
   }
+}
+
