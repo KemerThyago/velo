@@ -1,36 +1,46 @@
 import { test, expect } from '../support/fixtures'
 
 test.describe('Configuração do Veículo', () => {
-  test.beforeEach(async ({ page }) => {
-    await page.goto('/configure')
+  test.beforeEach(async ({ app }) => {
+    await app.configurator.open()
   })
 
-  test('deve atualizar a imagem e manter o preço base ao alterar a cor do veículo', async ({ page }) => {
-    const priceElement = page.getByTestId('total-price')
-    const car = page.locator('img[alt^="Velô Sprint"]')
+  test('deve atualizar a imagem e manter o preço base ao alterar a cor do veículo', async ({ app }) => {
+    await app.configurator.expectPrice('R$ 40.000,00')
 
-    await expect(priceElement).toBeVisible()
-    await expect(priceElement).toHaveText('R$ 40.000,00')
-    await page.getByRole('button', { name: 'Midnight Black' }).click()
-
-    await expect(priceElement).toHaveText('R$ 40.000,00')
-    await expect(car).toHaveAttribute('src', '/src/assets/midnight-black-aero-wheels.png')
+    await app.configurator.selectColor('Midnight Black')
+    await app.configurator.expectPrice('R$ 40.000,00')
+    await app.configurator.expectCarImage('/src/assets/midnight-black-aero-wheels.png')
   })
 
-  test('deve atualizar o preço e a imagem do veículo ao alterar as rodas', async ({ page }) => {
-    const priceElement = page.getByTestId('total-price')
-    const car = page.locator('img[alt^="Velô Sprint"]')
+  test('deve atualizar o preço e a imagem do veículo ao alterar as rodas', async ({ app }) => {
+    await app.configurator.expectPrice('R$ 40.000,00')
 
-    await expect(priceElement).toBeVisible()
-    await expect(priceElement).toHaveText('R$ 40.000,00')
+    await app.configurator.selectWheels(/Sport Wheels/)
+    await app.configurator.expectPrice('R$ 42.000,00')
+    await app.configurator.expectCarImage('/src/assets/glacier-blue-sport-wheels.png')
 
-    await page.getByRole('button', { name: /Sport Wheels/ }).click()
-    await expect(priceElement).toHaveText('R$ 42.000,00')
+    await app.configurator.selectWheels(/Aero Wheels/)
+    await app.configurator.expectPrice('R$ 40.000,00')
+    await app.configurator.expectCarImage('/src/assets/glacier-blue-aero-wheels.png')
+  })
 
-    await expect(car).toHaveAttribute('src', '/src/assets/glacier-blue-sport-wheels.png')
-    await page.getByRole('button', { name: /Aero Wheels/ }).click()
+  test('deve atualizar o preço do veículo ao adicionar e remover opcionais', async ({ app }) => {
 
-    await expect(priceElement).toHaveText('R$ 40.000,00')
-    await expect(car).toHaveAttribute('src', '/src/assets/glacier-blue-aero-wheels.png')
+    await app.configurator.expectPrice('R$ 40.000,00')
+
+    await app.configurator.checkOption(/Precision Park/)
+    await app.configurator.expectPrice('R$ 45.500,00')
+
+    await app.configurator.checkOption(/Flux Capacitor/)
+    await app.configurator.expectPrice('R$ 50.500,00')
+
+    await app.configurator.uncheckOption(/Precision Park/)
+    await app.configurator.expectPrice('R$ 45.000,00')
+
+    await app.configurator.uncheckOption(/Flux Capacitor/)
+    await app.configurator.expectPrice('R$ 40.000,00')
+
+    await app.configurator.goToCheckout()
   })
 })
