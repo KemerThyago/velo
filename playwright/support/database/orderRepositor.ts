@@ -1,0 +1,41 @@
+import { db } from './database'
+import { OrderTable } from './schema'
+import { OrderDetails } from '../actions/orderLockupActions'
+import crypto from 'crypto'
+
+export function normalizeValue(value: string) {
+  if (!value) return '';
+
+  return value
+    .normalize('NFD')              // separa acentos
+    .replace(/[\u0300-\u036f]/g, '') // remove acentos
+    .replace(/\s+/g, '')            // remove espaços
+    .toLowerCase();                 // converte para minúsculas
+}
+
+
+export async function insertOrder(order: OrderDetails) {
+
+  const data: OrderTable = {
+    id: crypto.randomUUID(),
+    order_number: order.number,
+    color: order.color.toLocaleLowerCase().replace(' ', '-'),
+    wheel_type: order.wheels.toLocaleLowerCase().replace('wheels', ''),
+    customer_name: order.customer.name,
+    customer_email: order.customer.email,
+    customer_phone: order.customer.phone,
+    customer_cpf: order.customer.document,
+    payment_method: normalizeValue(order.payment),
+    total_price: order.total_price,
+    status: order.status,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    optionals: [],
+  }
+  // If the record exists it might throw a duplicate error, but we manage teardown.
+  await db.insertInto('orders').values(data).execute()
+}
+
+export async function deleteOrderByNumber(orderNumber: string) {
+  await db.deleteFrom('orders').where('order_number', '=', orderNumber).execute()
+}

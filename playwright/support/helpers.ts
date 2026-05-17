@@ -1,13 +1,13 @@
 export function generateOrderCode() {
-    const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-  
-    function randomLetters(length) {
-      let result = '';
-      for (let i = 0; i < length; i++) {
-        result += letters.charAt(Math.floor(Math.random() * letters.length));
-      }
-      return result;
-    }
-  
-    return `VLO-${randomLetters(6)}`;
+  const prefix = 'VLO'
+
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
+  let randomPart = ''
+
+  for (let i = 0; i < 6; i++) {
+    const randomIndex = Math.floor(Math.random() * chars.length)
+    randomPart += chars[randomIndex]
   }
+
+  return `${prefix}-${randomPart}`
+}

@@ -1,6 +1,8 @@
 import { expect, test } from '../support/fixtures'
 import { generateOrderCode } from '../support/helpers'
-import { OrderDetails } from '../support/actions/orderLockupActions'
+import type { OrderDetails } from '../support/actions/orderLockupActions'
+import { insertOrder, deleteOrderByNumber } from '../support/database/orderRepositor'
+import testdata from '../support/fixtures/orders.json' with { type: 'json' }
 
 /// AAA - Arrange, Act, Assert
 
@@ -11,39 +13,22 @@ test.describe('Consulta de Pedido', () => {
   })
 
   test('deve consultar um pedido aprovado', async ({ app }) => {
-    // Test Data
-    const order: OrderDetails = {
-      number: 'VLO-RLJARM',
-      status: 'APROVADO',
-      color: 'Lunar White',
-      wheels: 'aero Wheels',
-      customer: {
-        name: 'Thyago Kemer',
-        email: 'asokdoaksd@gmail.com'
-      },
-      payment: 'À Vista'
-    }
+    const order: OrderDetails = testdata.aprovado as OrderDetails
+
+    await deleteOrderByNumber(order.number)
+    await insertOrder(order)
 
     await app.orderLockup.searchOrder(order.number)
     await app.orderLockup.validateOrderDetails(order)
     await app.orderLockup.validateStatusBadge(order.status)
-
   })
 
+
   test('deve consultar um pedido reprovado', async ({ app }) => {
-    // //Teste Data
-    // const order = 'VLO-UWXLMT'
-    const order: OrderDetails = {
-      number: 'VLO-UWXLMT',
-      status: 'REPROVADO',
-      color: 'Midnight Black',
-      wheels: 'sport Wheels',
-      customer: {
-        name: 'Fernando Luiz Whright',
-        email: 'FernandoWR@gmail.com'
-      },
-      payment: 'À Vista'
-    }
+    const order: OrderDetails = testdata.reprovado as OrderDetails
+
+    await deleteOrderByNumber(order.number)
+    await insertOrder(order)
 
     await app.orderLockup.searchOrder(order.number)
     await app.orderLockup.validateOrderDetails(order)
@@ -51,23 +36,17 @@ test.describe('Consulta de Pedido', () => {
   })
 
   test('deve consultar um pedido em analise', async ({ app }) => {
-    // Test Data
-    const order: OrderDetails = {
-      number: 'VLO-P95460',
-      status: 'EM_ANALISE' as const,
-      color: 'Lunar White',
-      wheels: 'aero Wheels',
-      customer: {
-        name: 'Paulo Silva',
-        email: 'aksodaoskd@gmail.com'
-      },
-      payment: 'À Vista'
-    }
+    const order: OrderDetails = testdata.em_analise as OrderDetails
+
+    await deleteOrderByNumber(order.number)
+    await insertOrder(order)
 
     await app.orderLockup.searchOrder(order.number)
     await app.orderLockup.validateOrderDetails(order)
     await app.orderLockup.validateStatusBadge(order.status)
   })
+
+
 
   test('deve exibir mensagem quando o pedido não é encontrado', async ({ app }) => {
     const order = generateOrderCode()
@@ -83,8 +62,9 @@ test.describe('Consulta de Pedido', () => {
     await app.orderLockup.searchOrder(orderCode)
     await app.orderLockup.validateOrderNotFound()
   })
+
   test('deve manter o botão de busca desabilitado com o campo vazio ou apenas espaços', async ({ app, page }) => {
-     
+
     const button = app.orderLockup.elements.searchButton
     await expect(button).toBeDisabled()
 

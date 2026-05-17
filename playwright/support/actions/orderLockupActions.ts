@@ -7,12 +7,13 @@ export type OrderDetails = {
   status: OrderStatus
   color: string
   wheels: string
-  customer: { name: string; email: string }
+  customer: { name: string; email: string; document: string; phone: string }
   payment: string
+  total_price: string
 }
 
 export function createOrderLockupActions(page: Page) {
-   
+
   const orderInput = page.getByRole('textbox', { name: 'Número do Pedido' })
   const searchButton = page.getByRole('button', { name: 'Buscar Pedido' })
 
@@ -21,7 +22,7 @@ export function createOrderLockupActions(page: Page) {
     elements: {
       orderInput,
       searchButton
-    } ,
+    },
 
     async open() {
       await page.goto('/')

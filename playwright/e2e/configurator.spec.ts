@@ -29,18 +29,18 @@ test.describe('Configuração do Veículo', () => {
 
     await app.configurator.expectPrice('R$ 40.000,00')
 
-    await app.configurator.checkOption(/Precision Park/)
+    await app.configurator.checkOptional(/Precision Park/i)
     await app.configurator.expectPrice('R$ 45.500,00')
 
-    await app.configurator.checkOption(/Flux Capacitor/)
+    await app.configurator.checkOptional(/Flux Capacitor/i)
     await app.configurator.expectPrice('R$ 50.500,00')
 
-    await app.configurator.uncheckOption(/Precision Park/)
-    await app.configurator.expectPrice('R$ 45.000,00')
-
-    await app.configurator.uncheckOption(/Flux Capacitor/)
+    await app.configurator.uncheckOptional(/Precision Park/i)
+    await app.configurator.uncheckOptional(/Flux Capacitor/i)
     await app.configurator.expectPrice('R$ 40.000,00')
 
-    await app.configurator.goToCheckout()
+    await app.configurator.finishConfigurator()
+    await app.checkout.expectLoaded()
+    await app.checkout.expectSummaryTotal('R$ 40.000,00')
   })
 })
