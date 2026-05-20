@@ -143,7 +143,7 @@ const Order = () => {
           body: { cpf: formData.document },
         });
 
-        if (error || !data || typeof data.score !== 'number') {
+        if (error || !data || typeof data.credit_score !== 'number') {
           console.error('Credit analysis error:', error || 'Invalid response');
           toast({
             title: 'Erro',
@@ -156,7 +156,7 @@ const Order = () => {
           return;
         }
 
-        const score = data.score;
+        const score = data.credit_score;
         const entryPercentage = entryValue / totalPrice;
 
         // Regras de Decisão (Ordem de Avaliação)
