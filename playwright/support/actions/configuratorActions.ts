@@ -9,6 +9,12 @@ export function createConfiguratorActions(page: Page) {
       await page.goto('/configure')
     },
 
+    async startFromHome() {
+      await page.goto('/')
+      await page.getByRole('link', { name: 'Configure o Seu' }).click()
+      await expect(page).toHaveURL(/\/configure/)
+    },
+
     async selectColor(name: string) {
       await page.getByRole('button', { name }).click()
     },
