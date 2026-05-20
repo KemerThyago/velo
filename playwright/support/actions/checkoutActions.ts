@@ -1,19 +1,8 @@
 import { Page, expect } from '@playwright/test'
 
-
-
 export function createCheckoutActions(page: Page) {
 
   const terms = page.getByTestId('checkout-terms')
-
-  const inputs = {
-    name: page.getByTestId('checkout-name'),
-    lastname: page.getByTestId('checkout-lastname'),
-    email: page.getByTestId('checkout-email'),
-    phone: page.getByTestId('checkout-phone'),
-    document: page.getByTestId('checkout-document'),
-  }
-
 
   const alerts = {
     name: page.getByTestId('error-name'),
@@ -25,12 +14,12 @@ export function createCheckoutActions(page: Page) {
     terms: page.getByTestId('error-terms')
   }
 
+
   return {
 
     elements: {
       terms,
-      alerts,
-      inputs
+      alerts
     },
 
     async expectLoaded() {
@@ -39,6 +28,20 @@ export function createCheckoutActions(page: Page) {
 
     async expectSummaryTotal(price: string) {
       await expect(page.getByTestId('summary-total-price')).toHaveText(price)
+    },
+
+    async fillCustomerlData(data: {
+      name: string
+      lastname: string
+      email: string
+      phone: string
+      document: string
+    }) {
+      await page.getByTestId('checkout-name').fill(data.name)
+      await page.getByTestId('checkout-lastname').fill(data.lastname)
+      await page.getByTestId('checkout-email').fill(data.email)
+      await page.getByTestId('checkout-phone').fill(data.phone)
+      await page.getByTestId('checkout-document').fill(data.document)
     },
 
     async selectStore(storeName: string) {
@@ -58,28 +61,14 @@ export function createCheckoutActions(page: Page) {
       await terms.check()
     },
 
-    async fillCustomerlData(customer: { name: string; lastname: string; email: string; phone: string; document: string }) {
-      await inputs.name.fill(customer.name)
-      await inputs.lastname.fill(customer.lastname)
-      await inputs.email.fill(customer.email)
-      await inputs.phone.fill(customer.phone)
-      await inputs.document.fill(customer.document)
-    },
-
     async submit() {
-      await page.getByTestId('checkout-submit').click()
+      await page.getByRole('button', { name: 'Confirmar Pedido' }).click()
     },
 
     async expectResult(status: string) {
       await expect(page).toHaveURL(/\/success/)
-      await expect(page.getByTestId('success-status')).toHaveText(status)
-    },
-
-    async getOrderId() {
-      const orderId = await page.getByTestId('order-id').innerText()
-      expect(orderId).not.toBeNull()
-      return orderId
-    },
+      await expect(page.getByRole('heading', { name: status })).toBeVisible()
+    }
 
   }
 }

@@ -1,7 +1,7 @@
 import { expect, test } from '../support/fixtures'
 import { generateOrderCode } from '../support/helpers'
-import type { OrderDetails } from '../support/actions/orderLockupActions'
-import { insertOrder, deleteOrderByNumber } from '../support/database/orderRepositor'
+import type { OrderDetails } from '../support/actions/orderLookupActions'
+import { insertOrder, deleteOrderByNumber } from '../support/database/orderRepository'
 import testdata from '../support/fixtures/orders.json' with { type: 'json' }
 
 /// AAA - Arrange, Act, Assert
