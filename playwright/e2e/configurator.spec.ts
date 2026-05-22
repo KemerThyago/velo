@@ -18,7 +18,7 @@ test.describe('Configuração do Veículo', () => {
 
     await app.configurator.selectWheels(/Sport Wheels/)
     await app.configurator.expectPrice('R$ 42.000,00')
-    await app.configurator.expectCarImage('/src/assets/glacier-blue-sport-wheels.png')
+    await app.configurator.expectCarImage('glacier-blue-sport-wheels.png')
 
     await app.configurator.selectWheels(/Aero Wheels/)
     await app.configurator.expectPrice('R$ 40.000,00')

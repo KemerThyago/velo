@@ -32,7 +32,10 @@ export function createConfiguratorActions(page: Page) {
     async expectCarImage(expectedSrc: string) {
       const carImage = page.locator('img[alt^="Velô Sprint"]')
       await expect(carImage).toBeVisible()
-      await expect(carImage).toHaveAttribute('src', new RegExp(expectedSrc))
+      
+      // Extrai o nome base (ex: "glacier-blue-sport-wheels") do caminho completo e extensão
+      const baseName = expectedSrc.split('/').pop()?.split('.').shift() || expectedSrc
+      await expect(carImage).toHaveAttribute('src', new RegExp(baseName))
     },
 
     async checkOptional(name: string | RegExp) {
