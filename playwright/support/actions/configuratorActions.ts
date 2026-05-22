@@ -29,13 +29,10 @@ export function createConfiguratorActions(page: Page) {
       await expect(priceElement).toHaveText(price)
     },
 
-    async expectCarImage(expectedSrc: string) {
+    async expectCarImage(src: string | RegExp) {
       const carImage = page.locator('img[alt^="Velô Sprint"]')
       await expect(carImage).toBeVisible()
-      
-      // Extrai o nome base (ex: "glacier-blue-sport-wheels") do caminho completo e extensão
-      const baseName = expectedSrc.split('/').pop()?.split('.').shift() || expectedSrc
-      await expect(carImage).toHaveAttribute('src', new RegExp(baseName))
+      await expect(carImage).toHaveAttribute('src', src)
     },
 
     async checkOptional(name: string | RegExp) {
