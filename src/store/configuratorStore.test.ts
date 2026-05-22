@@ -107,4 +107,109 @@ describe('configuratorStore actions', () => {
     expect(loginResult2).toBe(true);
     expect(useConfiguratorStore.getState().currentUserEmail).toBe('test@example.com');
   });
+
+  it('should add a new order correctly', () => {
+    useConfiguratorStore.setState({ orders: [] });
+
+    const newOrder = {
+      id: 'VLO-123456',
+      configuration: {
+        exteriorColor: 'midnight-black' as const,
+        interiorColor: 'carbon-black' as const,
+        wheelType: 'sport' as const,
+        optionals: ['precision-park' as const],
+      },
+      totalPrice: 47500,
+      customer: {
+        name: 'John',
+        surname: 'Doe',
+        email: 'john.doe@example.com',
+        phone: '11987654321',
+        cpf: '12345678901',
+        store: 'SP-Market',
+      },
+      paymentMethod: 'financiamento' as const,
+      status: 'EM_ANALISE' as const,
+      createdAt: new Date().toISOString(),
+    };
+
+    useConfiguratorStore.getState().addOrder(newOrder);
+
+    const orders = useConfiguratorStore.getState().orders;
+    expect(orders).toHaveLength(1);
+    expect(orders[0]).toEqual(newOrder);
+  });
+
+  it('should manage getUserOrders correctly with privacy and filtering', () => {
+    // Reset state and logout
+    useConfiguratorStore.setState({ orders: [], currentUserEmail: null });
+
+    // Empty orders returned when no user is logged in
+    expect(useConfiguratorStore.getState().getUserOrders()).toEqual([]);
+
+    const orderUserA = {
+      id: 'A1',
+      configuration: { exteriorColor: 'glacier-blue' as const, interiorColor: 'carbon-black' as const, wheelType: 'aero' as const, optionals: [] },
+      totalPrice: 40000,
+      customer: { name: 'Alice', surname: 'Smith', email: 'alice@example.com', phone: '', cpf: '', store: '' },
+      paymentMethod: 'avista' as const,
+      status: 'APROVADO' as const,
+      createdAt: new Date().toISOString(),
+    };
+
+    const orderUserB = {
+      id: 'B1',
+      configuration: { exteriorColor: 'midnight-black' as const, interiorColor: 'carbon-black' as const, wheelType: 'sport' as const, optionals: [] },
+      totalPrice: 42000,
+      customer: { name: 'Bob', surname: 'Jones', email: 'bob@example.com', phone: '', cpf: '', store: '' },
+      paymentMethod: 'financiamento' as const,
+      status: 'EM_ANALISE' as const,
+      createdAt: new Date().toISOString(),
+    };
+
+    useConfiguratorStore.setState({ orders: [orderUserA, orderUserB] });
+
+    // Login Alice
+    useConfiguratorStore.setState({ currentUserEmail: 'alice@example.com' });
+    const aliceOrders = useConfiguratorStore.getState().getUserOrders();
+    expect(aliceOrders).toHaveLength(1);
+    expect(aliceOrders[0].customer.email).toBe('alice@example.com');
+    expect(aliceOrders[0].id).toBe('A1');
+
+    // Login Bob
+    useConfiguratorStore.setState({ currentUserEmail: 'bob@example.com' });
+    const bobOrders = useConfiguratorStore.getState().getUserOrders();
+    expect(bobOrders).toHaveLength(1);
+    expect(bobOrders[0].customer.email).toBe('bob@example.com');
+    expect(bobOrders[0].id).toBe('B1');
+
+    // Non-existent user
+    useConfiguratorStore.setState({ currentUserEmail: 'unknown@example.com' });
+    expect(useConfiguratorStore.getState().getUserOrders()).toEqual([]);
+  });
+
+  it('should reset car configuration to default values', () => {
+    useConfiguratorStore.getState().resetConfiguration();
+
+    // Modify configuration
+    useConfiguratorStore.getState().setExteriorColor('midnight-black');
+    useConfiguratorStore.getState().setInteriorColor('deep-blue');
+    useConfiguratorStore.getState().setWheelType('sport');
+    useConfiguratorStore.getState().toggleOptional('precision-park');
+
+    expect(useConfiguratorStore.getState().configuration.exteriorColor).toBe('midnight-black');
+    expect(useConfiguratorStore.getState().configuration.interiorColor).toBe('deep-blue');
+    expect(useConfiguratorStore.getState().configuration.wheelType).toBe('sport');
+    expect(useConfiguratorStore.getState().configuration.optionals).toContain('precision-park');
+
+    // Reset
+    useConfiguratorStore.getState().resetConfiguration();
+
+    // Verify defaults
+    const defaultConfig = useConfiguratorStore.getState().configuration;
+    expect(defaultConfig.exteriorColor).toBe('glacier-blue');
+    expect(defaultConfig.interiorColor).toBe('carbon-black');
+    expect(defaultConfig.wheelType).toBe('aero');
+    expect(defaultConfig.optionals).toEqual([]);
+  });
 });
