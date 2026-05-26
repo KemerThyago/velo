@@ -10,6 +10,8 @@ on:
 
 env:
   NODE_VERSION: '24'
+  VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+  VECEL_SCOPE: thyago-kemer-s-projects
 
 jobs:
   unit-tests:
@@ -38,3 +40,36 @@ jobs:
       # Step 5 - Execução dos testes unitários com Vitest
       - name: Run unit tests
         run: yarn test
+ 
+  build-and-deploy:
+    name: Build and Deploy
+    needs: [unit-tests]
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1 - Checkout do código fonte
+      - name: Checkout repository
+        uses: actions/checkout@v6.0.2
+
+      # Step 2 - Configuração da versão do Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v6.4.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      # Step 3 - Habilitar Corepack para gerenciamento do Yarn
+      - name: Enable Corepack
+        run: corepack enable
+
+      # Step 4 - Instalação das dependências do projeto
+      - name: Install dependencies
+        run: yarn install
+
+      # Step 5 - Build para o vercel
+      - name: Build project
+        run: yarn build --token=$VERCEL_TOKEN
+
+      # Step 6 - Deploy para o vercel
+      - name: Deploy to Vercel
+        run: yarn vercel deploy --prebuild --target=preview --token=$VERCEL_TOKEN --scope=$VECEL_SCOPE
+    
