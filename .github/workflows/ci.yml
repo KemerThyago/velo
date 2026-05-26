@@ -11,7 +11,9 @@ on:
 env:
   NODE_VERSION: '24'
   VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-  VECEL_SCOPE: thyago-kemer-s-projects
+  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+  VERCEL_SCOPE: ${{ secrets.VERCEL_SCOPE }}
 
 jobs:
   unit-tests:
@@ -71,5 +73,5 @@ jobs:
 
       # Step 6 - Deploy para o vercel
       - name: Deploy to Vercel
-        run: yarn vercel deploy --prebuild --target=preview --token=$VERCEL_TOKEN --scope=$VECEL_SCOPE
+        run: yarn vercel deploy --prebuild --target=preview --token=$VERCEL_TOKEN --scope=$VERCEL_SCOPE
     
