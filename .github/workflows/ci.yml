@@ -67,11 +67,15 @@ jobs:
       - name: Install dependencies
         run: yarn install
 
-      # Step 5 - Build para o vercel
+      # Step 5 - Configuração do Vercel
+      - name: Pull Vercel config
+        run: yarn vercel pull --yes --environment=preview --scope=$VERCEL_SCOPE --token=$VERCEL_TOKEN
+
+      # Step 6 - Build para o vercel
       - name: Build project
         run: yarn build --token=$VERCEL_TOKEN
 
-      # Step 6 - Deploy para o vercel
+      # Step 7 - Deploy para o vercel
       - name: Deploy to Vercel
         run: yarn vercel deploy --prebuild --target=preview --token=$VERCEL_TOKEN --scope=$VERCEL_SCOPE
     
