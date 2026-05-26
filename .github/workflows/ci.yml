@@ -73,7 +73,7 @@ jobs:
 
       # Step 6 - Build para o vercel
       - name: Build project
-        run: yarn build --token=$VERCEL_TOKEN
+        run: yarn vercel build --token=$VERCEL_TOKEN
 
       # Step 7 - Deploy para o vercel
       - name: Deploy to Vercel
