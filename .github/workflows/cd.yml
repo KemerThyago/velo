@@ -15,6 +15,7 @@ env:
   VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
   VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
   VERCEL_SCOPE: thyago-kemer-s-projects
+  TD_TOKEN: ${{ secrets.TD_TOKEN }}
 
 jobs:
   unit-tests:
@@ -133,6 +134,11 @@ jobs:
         with:
           name: playwright-report
           path: playwright-report
+
+      # Step 8. Publicar report JSON do TestDino
+      - name: Publish Testdino Report
+        if: ${{ !cancelled() }}
+        run: npx tdpw upload ./playwright-report --token=${{ secrets.TD_TOKEN }}
 
   promote:
     name: Promote to Production
