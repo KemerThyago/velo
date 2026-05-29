@@ -83,9 +83,15 @@ jobs:
 
       # 6. Build para o Vercel
       - name: Build Preview
-        run: yarn vercel build --token=$VERCEL_TOKEN --environment=preview
+        run: yarn vercel build --token=$VERCEL_TOKEN
 
-      # 7. Deploy preview no Vercel
+      # 7. Exporta variáveis do preview e faz o build final
+      - name: Export Preview Envs
+        run: |
+          export $(cat .vercel/.env.preview.local | xargs)
+          yarn vercel build --token=$VERCEL_TOKEN
+
+      # 8. Deploy preview no Vercel
       - name: Deploy Preview
         id: deploy
         run: |
