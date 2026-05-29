@@ -182,5 +182,5 @@ jobs:
         run: yarn vercel build --prod --token=$VERCEL_TOKEN
 
       # 7. Deploy de Produção
-      - name: Deploy Production
+      - name: Deploy Production 
         run: yarn vercel deploy --prebuilt --prod --token=$VERCEL_TOKEN --scope=$VERCEL_SCOPE
