@@ -1,5 +1,5 @@
-# Workflow de Integração Contínua focado em execução de testes unitários
-# Estrutura preparada para expansão futura (novos jobs, stages, etc.)
+# Workflow de Continuous Deployment
+# Pipeline: Unit Tests → Build Preview → E2E Tests → Build & Deploy Production
 
 name: Continuous Deployment
 
@@ -15,7 +15,6 @@ env:
   VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
   VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
   VERCEL_SCOPE: thyago-kemer-s-projects
-  TD_TOKEN: ${{ secrets.TD_TOKEN }}
 
 jobs:
   unit-tests:
@@ -38,15 +37,15 @@ jobs:
         run: corepack enable
 
       # 4. Instala as dependências do projeto
-      - name: Install dependencies
-        run: yarn install
+      - name: Install Dependencies
+        run: yarn install --frozen-lockfile
 
       # 5. Executa os testes unitários com Vitest
-      - name: Run unit tests
+      - name: Run Unit Tests
         run: yarn test
-  
-  build-and-deploy:
-    name: Build & Deploy Vercel Preview
+
+  build-preview:
+    name: Build and Deploy Preview
     needs: [unit-tests]
     runs-on: ubuntu-latest
     outputs:
@@ -68,34 +67,39 @@ jobs:
         run: corepack enable
 
       # 4. Instala as dependências do projeto
-      - name: Install dependencies
-        run: yarn install
+      - name: Install Dependencies
+        run: yarn install --frozen-lockfile
 
-      # 5. Obter as configurações do vercel
-      - name: Pull Vercel Config
+      # 5. Obter as configurações do Vercel (Preview)
+      - name: Pull Vercel Config (Preview)
         run: |
           yarn vercel pull --yes \
-          --environment=preview \
-          --token=$VERCEL_TOKEN \
-          --scope=$VERCEL_SCOPE
-      
+            --environment=preview \
+            --token=$VERCEL_TOKEN \
+            --scope=$VERCEL_SCOPE
+
       # 6. Build para o Vercel
-      - name: Build Vercel
+      - name: Build Preview
         run: yarn vercel build --token=$VERCEL_TOKEN
 
-      # 7. Deploy preview no vercel
-      - name: Deploy preview
+      # 7. Deploy preview no Vercel
+      - name: Deploy Preview
         id: deploy
         run: |
-          URL=$(yarn --silent vercel deploy --prebuilt \
-          --target=preview \
-          --token=$VERCEL_TOKEN \
-          --scope=$VERCEL_SCOPE)
+          echo "=== RAW OUTPUT ==="
+          RAW=$(yarn vercel deploy --prebuilt --token=$VERCEL_TOKEN --scope=$VERCEL_SCOPE)
+          echo "$RAW"
+          echo "=== FIM DO OUTPUT ==="
+          URL=$(echo "$RAW" | grep -oE 'https://[a-zA-Z0-9-]+-[a-zA-Z0-9]+-[a-zA-Z0-9-]+\.vercel\.app' | tail -1)
+          echo "URL extraída: $URL"
           echo "deployment-url=$URL" >> $GITHUB_OUTPUT
 
+      - name: Debug deployment URL
+        run: echo "BASE_URL=${{ steps.deploy.outputs.deployment-url }}"
+
   e2e-tests:
-    name: Run E2E Tests
-    needs: [build-and-deploy]
+    name: E2E Tests
+    needs: [build-preview]
     runs-on: ubuntu-latest
 
     steps:
@@ -114,47 +118,36 @@ jobs:
         run: corepack enable
 
       # 4. Instala as dependências do projeto
-      - name: Install dependencies
-        run: yarn install
+      - name: Install Dependencies
+        run: yarn install --frozen-lockfile
 
-      # 5. Obter as configurações do vercel para o ambiente preview
-      - name: Pull Vercel Preview Config
-        run: |
-          yarn vercel pull --yes \
-          --environment=preview \
-          --token=$VERCEL_TOKEN \
-          --scope=$VERCEL_SCOPE
-
-      # 6. Copiar as configurações de preview para o arquivo .env para que o Playwright leia
-      - name: Copy pulled env to .env
-        run: cp .vercel/.env.preview.local .env
-
-      # 7. Instalação do Chromium
-      - name: Install Plawright Browser
+      # 5. Instalação do Chromium
+      - name: Install Playwright Browsers
         run: yarn playwright install --with-deps chromium
 
-      # 8. Execução dos Testes de Regressão
-      - name: Run E2E Regression Tests
+      # 6. Execução dos Testes E2E
+      - name: Run E2E Tests
         run: yarn playwright test
         env:
-          BASE_URL: ${{ needs.build-and-deploy.outputs.deployment-url }}
+          BASE_URL: ${{ needs.build-preview.outputs.deployment-url }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL_PREVIEW }}
 
-      # 9. Relatório de Testes Automatizados
+      # 7. Relatório de Testes Automatizados
       - name: Upload Playwright report
-        if: ${{ !cancelled() }} 
+        if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v7.0.1
         with:
           name: playwright-report
           path: playwright-report
 
-      # Step 10. Publicar report JSON do TestDino
+      # 8. Publicar report JSON do TestDino
       - name: Publish Testdino Report
         if: ${{ !cancelled() }}
         run: npx tdpw upload ./playwright-report --token=${{ secrets.TD_TOKEN }}
 
-  promote:
-    name: Build & Deploy to Production
-    needs: [build-and-deploy, e2e-tests]
+  build-production:
+    name: Build and Deploy Production
+    needs: [e2e-tests]
     runs-on: ubuntu-latest
 
     steps:
@@ -173,25 +166,21 @@ jobs:
         run: corepack enable
 
       # 4. Instala as dependências do projeto
-      - name: Install dependencies
-        run: yarn install
+      - name: Install Dependencies
+        run: yarn install --frozen-lockfile
 
-      # 5. Obter as configurações do vercel para o ambiente de produção
-      - name: Pull Vercel Production Config
+      # 5. Obter as configurações do Vercel (Production)
+      - name: Pull Vercel Config (Production)
         run: |
           yarn vercel pull --yes \
-          --environment=production \
-          --token=$VERCEL_TOKEN \
-          --scope=$VERCEL_SCOPE
+            --environment=production \
+            --token=$VERCEL_TOKEN \
+            --scope=$VERCEL_SCOPE
 
-      # 6. Build para o Vercel em modo de Produção
-      - name: Build Vercel Production
+      # 6. Build para Produção
+      - name: Build Production
         run: yarn vercel build --prod --token=$VERCEL_TOKEN
 
-      # 7. Deploy de produção
+      # 7. Deploy de Produção
       - name: Deploy Production
-        run: |
-          yarn vercel deploy --prebuilt \
-          --prod \
-          --token=$VERCEL_TOKEN \
-          --scope=$VERCEL_SCOPE
+        run: yarn vercel deploy --prebuilt --prod --token=$VERCEL_TOKEN --scope=$VERCEL_SCOPE
