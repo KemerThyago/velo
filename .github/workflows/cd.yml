@@ -88,8 +88,9 @@ jobs:
       # 7. Exporta variáveis do preview e faz o build final
       - name: Export Preview Envs
         run: |
-          export $(cat .vercel/.env.preview.local | xargs)
-          yarn vercel build --token=$VERCEL_TOKEN
+          set -a
+          source .vercel/.env.preview.local
+          set +a
 
       # 8. Deploy preview no Vercel
       - name: Deploy Preview
