@@ -78,6 +78,9 @@ jobs:
             --token=$VERCEL_TOKEN \
             --scope=$VERCEL_SCOPE
 
+      - name: Inject Vercel Env to Vite
+        run: cp .vercel/.env.preview.local .env
+
       # 6. Build para o Vercel
       - name: Build Preview
         run: yarn vercel build --token=$VERCEL_TOKEN
@@ -176,6 +179,9 @@ jobs:
             --environment=production \
             --token=$VERCEL_TOKEN \
             --scope=$VERCEL_SCOPE
+
+      - name: Inject Vercel Env to Vite
+        run: cp .vercel/.env.production.local .env
 
       # 6. Build para Produção
       - name: Build Production
