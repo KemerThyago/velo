@@ -92,7 +92,13 @@ jobs:
           source .vercel/.env.preview.local
           set +a
 
-      # 8. Deploy preview no Vercel
+      #8 
+      - name: Check envs
+        run: |
+          echo "URL=$VITE_SUPABASE_URL"
+          echo "KEY=${#VITE_SUPABASE_PUBLISHABLE_KEY}"
+
+      # 9. Deploy preview no Vercel
       - name: Deploy Preview
         id: deploy
         run: |
