@@ -56,7 +56,11 @@ export default defineConfig({
 
     // Tempo máximo para navegações como goto(), waitForURL()
     // Quando o valor é 0, herda o limite do timeout geral do teste
-    navigationTimeout: 30_000
+    navigationTimeout: 30_000,
+
+    launchOptions: {
+      args: ['--no-sandbox', '--disable-setuid-sandbox'],
+    }
   },
 
   /* Configure projects for major browsers */
