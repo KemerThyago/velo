@@ -84,12 +84,12 @@ jobs:
       - name: Deploy Preview
         id: deploy
         run: |
-          echo "=== RAW OUTPUT ==="
-          RAW=$(yarn vercel deploy --prebuilt --token=$VERCEL_TOKEN --scope=$VERCEL_SCOPE)
+          set -euo pipefail
+          RAW=$(yarn vercel deploy --prebuilt --token=$VERCEL_TOKEN --scope=$VERCEL_SCOPE --no-color 2>&1)
           echo "$RAW"
-          echo "=== FIM DO OUTPUT ==="
-          URL=$(echo "$RAW" | grep -oE 'https://[a-zA-Z0-9-]+\.vercel\.app' | tail -1)
+          URL=$(echo "$RAW" | grep -oE 'https://[a-zA-Z0-9._-]+\.vercel\.app' | tail -1)
           echo "URL extraída: $URL"
+          : "${URL:?Deployment URL está vazia — verifique o output do 'yarn vercel deploy'}"
           echo "deployment-url=$URL" >> $GITHUB_OUTPUT
 
       - name: Debug deployment URL
@@ -147,11 +147,13 @@ jobs:
       - name: Install Dependencies
         run: yarn install --frozen-lockfile
 
-      - name: Debug BASE_URL
-        run: echo "BASE_URL=${{ needs.build-preview.outputs.deployment-url }}"
-
-      - name: Check URL accessibility
-        run: curl -I ${{ needs.build-preview.outputs.deployment-url }}
+      - name: Validate deployment URL
+        run: |
+          set -euo pipefail
+          BASE_URL="${{ needs.build-preview.outputs.deployment-url }}"
+          echo "BASE_URL=$BASE_URL"
+          : "${BASE_URL:?Deployment URL está vazia — verifique o passo 'Deploy Preview'.}"
+          curl --fail --max-redirs 0 -sI "$BASE_URL"
 
       - name: Run E2E Tests
         run: yarn playwright test
