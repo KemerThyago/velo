@@ -152,7 +152,10 @@ jobs:
           key: playwright-chromium-${{ hashFiles('**/yarn.lock') }}
 
       - name: Install Playwright Browsers
-        run: yarn playwright install --with-deps chromium
+        run: yarn playwright install chromium
+
+      - name: Install Playwright System Dependencies
+        run: yarn playwright install-deps chromium
 
       - name: Debug BASE_URL
         run: echo "BASE_URL=${{ needs.build-preview.outputs.deployment-url }}"
