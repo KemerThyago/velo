@@ -189,6 +189,11 @@ jobs:
           DB_URL=$(echo "${{ secrets.DATABASE_URL_PREVIEW }}" | sed 's/:5432/:6543/')
           echo "DATABASE_URL=$DB_URL" >> $GITHUB_ENV
 
+      - name: Run Online Test Only
+        run: yarn playwright test online.spec.ts --reporter=list
+        env:
+          BASE_URL: ${{ needs.build-preview.outputs.deployment-url }}
+
       - name: Run E2E Tests
         run: yarn playwright test
         env:
