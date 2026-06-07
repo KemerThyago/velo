@@ -169,6 +169,21 @@ jobs:
             await browser.close();
           })();
           "
+
+      - name: Debug Vercel URL
+        run: |
+          node -e "
+          const { chromium } = require('playwright');
+          (async () => {
+            const browser = await chromium.launch();
+            const page = await browser.newPage();
+            page.on('response', r => console.log(r.status(), r.url()));
+            await page.goto('${{ needs.build-preview.outputs.deployment-url }}', {timeout: 30000});
+            console.log('Title:', await page.title());
+            await browser.close();
+          })();
+          "
+
       - name: Run E2E Tests
         run: yarn playwright test
         env:
