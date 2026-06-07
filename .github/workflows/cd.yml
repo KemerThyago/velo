@@ -114,6 +114,8 @@ jobs:
     name: E2E Tests
     needs: [build-preview]
     runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/playwright:v1.58.2-noble
 
     steps:
       # 1. Faz checkout do código do repositório
@@ -133,16 +135,6 @@ jobs:
       # 4. Instala as dependências do projeto
       - name: Install Dependencies
         run: yarn install --frozen-lockfile
-      # 4.1 Cache dos navegadores do Playwright
-      - name: Cache Playwright Browsers
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-chromium-${{ hashFiles('**/yarn.lock') }}
-
-      # 5. Instalação do Chromium e dependências (O Playwright pula o download automaticamente se houver cache)
-      - name: Install Playwright Browsers
-        run: yarn playwright install --with-deps chromium
 
       # 5.1 Execução das Migrations do banco de Preview
       - name: Run Database Migrations
