@@ -129,6 +129,8 @@ jobs:
     name: E2E Tests
     needs: [prepare-db, build-preview]
     runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/playwright:v1.58.2-noble
 
     steps:
       - name: Checkout repository
@@ -144,18 +146,6 @@ jobs:
 
       - name: Install Dependencies
         run: yarn install --frozen-lockfile
-
-      - name: Cache Playwright Browsers
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-chromium-${{ hashFiles('**/yarn.lock') }}
-
-      - name: Install Playwright Browsers
-        run: yarn playwright install chromium
-
-      - name: Install Playwright System Dependencies
-        run: yarn playwright install-deps chromium
 
       - name: Debug BASE_URL
         run: echo "BASE_URL=${{ needs.build-preview.outputs.deployment-url }}"
