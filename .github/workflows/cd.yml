@@ -116,7 +116,7 @@ jobs:
 
   e2e-tests:
     name: E2E Tests
-    needs: [prepare-db, build-preview]
+    needs: [build-preview]
     runs-on: ubuntu-latest
 
     steps:
