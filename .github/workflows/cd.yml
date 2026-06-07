@@ -93,7 +93,9 @@ jobs:
           VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY_PREVIEW }}
           VITE_SUPABASE_PROJECT_ID: ${{ secrets.VITE_SUPABASE_PROJECT_ID_PREVIEW }}
 
-      # 7. Deploy preview no Vercel
+
+
+      # 9. Deploy preview no Vercel
       - name: Deploy Preview
         id: deploy
         run: |
@@ -108,10 +110,41 @@ jobs:
       - name: Debug deployment URL
         run: echo "BASE_URL=${{ steps.deploy.outputs.deployment-url }}"
 
-  e2e-tests:
-    name: E2E Tests
+  prepare-db:
+    name: Prepare Preview Database
     needs: [build-preview]
     runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6.0.2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6.4.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Install Dependencies
+        run: yarn install --frozen-lockfile
+
+      # Execução das Migrations do banco de Preview
+      - name: Run Database Migrations
+        run: yarn supabase db push --db-url ${{ secrets.DATABASE_URL_PREVIEW }}
+
+      # Deploy das Edge Functions no banco de Preview
+      - name: Deploy Supabase Functions
+        run: yarn supabase functions deploy --project-ref ${{ secrets.VITE_SUPABASE_PROJECT_ID_PREVIEW }}
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+  e2e-tests:
+    name: E2E Tests
+    needs: [prepare-db, build-preview]
+    runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/playwright:v1.58.2-noble
 
     steps:
       - name: Checkout repository
@@ -138,18 +171,6 @@ jobs:
       # 5. Instalação do Chromium e dependências (O Playwright pula o download automaticamente se houver cache)
       - name: Install Playwright Browsers
         run: yarn playwright install --with-deps chromium
-
-      # 5.1 Execução das Migrations do banco de Preview
-      - name: Run Database Migrations
-        run: |
-          DB_URL=$(echo "${{ secrets.DATABASE_URL_PREVIEW }}" | sed 's/:5432/:6543/')
-          yarn supabase db push --db-url "$DB_URL"
-
-      # 5.2 Deploy das Edge Functions no banco de Preview
-      - name: Deploy Supabase Functions
-        run: yarn supabase functions deploy --project-ref ${{ secrets.VITE_SUPABASE_PROJECT_ID_PREVIEW }}
-        env:
-          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
 
       # 6. Execução dos Testes E2E
       - name: Run E2E Tests
