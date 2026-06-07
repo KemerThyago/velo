@@ -101,7 +101,7 @@ jobs:
           RAW=$(yarn vercel deploy --prebuilt --token=$VERCEL_TOKEN --scope=$VERCEL_SCOPE)
           echo "$RAW"
           echo "=== FIM DO OUTPUT ==="
-          URL=$(echo "$RAW" | grep -oE 'https://[a-zA-Z0-9-]+-[a-zA-Z0-9]+-[a-zA-Z0-9-]+\.vercel\.app' | tail -1)
+          URL=$(echo "$RAW" | grep -oE 'https://[a-zA-Z0-9-]+\.vercel\.app' | tail -1)
           echo "URL extraída: $URL"
           echo "deployment-url=$URL" >> $GITHUB_OUTPUT
       
