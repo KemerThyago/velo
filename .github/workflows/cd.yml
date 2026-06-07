@@ -79,7 +79,11 @@ jobs:
             --scope=$VERCEL_SCOPE
 
       - name: Inject Vercel Env to Vite
-        run: cp .vercel/.env.preview.local .env
+        run: |
+          cp .vercel/.env.preview.local .env
+          echo "VITE_SUPABASE_URL=${{ secrets.VITE_SUPABASE_URL_PREVIEW }}" >> .env
+          echo "VITE_SUPABASE_PUBLISHABLE_KEY=${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY_PREVIEW }}" >> .env
+          echo "VITE_SUPABASE_PROJECT_ID=${{ secrets.VITE_SUPABASE_PROJECT_ID_PREVIEW }}" >> .env
 
       # 6. Build para o Vercel
       - name: Build Preview
@@ -140,6 +144,16 @@ jobs:
       # 5. Instalação do Chromium
       - name: Install Playwright Browsers
         run: yarn playwright install --with-deps chromium
+
+      # 5.1 Execução das Migrations do banco de Preview
+      - name: Run Database Migrations
+        run: yarn supabase db push --db-url ${{ secrets.DATABASE_URL_PREVIEW }}
+
+      # 5.2 Deploy das Edge Functions no banco de Preview
+      - name: Deploy Supabase Functions
+        run: yarn supabase functions deploy --project-ref ${{ secrets.VITE_SUPABASE_PROJECT_ID_PREVIEW }}
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
 
       # 6. Execução dos Testes E2E
       - name: Run E2E Tests
