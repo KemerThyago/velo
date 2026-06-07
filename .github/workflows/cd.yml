@@ -241,10 +241,18 @@ jobs:
             --scope=$VERCEL_SCOPE
 
       - name: Inject Vercel Env to Vite
-        run: cp .vercel/.env.production.local .env
+        run: |
+          echo "VITE_SUPABASE_URL=${{ secrets.VITE_SUPABASE_URL_PRODUCTION }}" >> .vercel/.env.production.local
+          echo "VITE_SUPABASE_PUBLISHABLE_KEY=${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY_PRODUCTION }}" >> .vercel/.env.production.local
+          echo "VITE_SUPABASE_PROJECT_ID=${{ secrets.VITE_SUPABASE_PROJECT_ID_PRODUCTION }}" >> .vercel/.env.production.local
+          cp .vercel/.env.production.local .env
 
       - name: Build Production
         run: yarn vercel build --prod --token=$VERCEL_TOKEN
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL_PRODUCTION }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY_PRODUCTION }}
+          VITE_SUPABASE_PROJECT_ID: ${{ secrets.VITE_SUPABASE_PROJECT_ID_PRODUCTION }}
 
       - name: Deploy Production
         run: yarn vercel deploy --prebuilt --prod --token=$VERCEL_TOKEN --scope=$VERCEL_SCOPE
