@@ -148,7 +148,9 @@ jobs:
         run: yarn install --frozen-lockfile
 
       - name: Validate deployment URL
+        shell: bash
         run: |
+          set -euo pipefail
           BASE_URL="${{ needs.build-preview.outputs.deployment-url }}"
           echo "BASE_URL=$BASE_URL"
           : "${BASE_URL:?Deployment URL está vazia — verifique o passo 'Deploy Preview'.}"
