@@ -156,6 +156,19 @@ jobs:
           : "${BASE_URL:?Deployment URL está vazia — verifique o passo 'Deploy Preview'.}"
           curl --fail --max-redirs 0 -sI "$BASE_URL"
 
+      - name: Debug Chromium
+        run: |
+          yarn playwright --version
+          node -e "
+          const { chromium } = require('playwright');
+          (async () => {
+            const browser = await chromium.launch();
+            const page = await browser.newPage();
+            await page.goto('https://example.com');
+            console.log('Title:', await page.title());
+            await browser.close();
+          })();
+          "
       - name: Run E2E Tests
         run: yarn playwright test
         env:
