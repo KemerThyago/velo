@@ -150,6 +150,9 @@ jobs:
       - name: Debug BASE_URL
         run: echo "BASE_URL=${{ needs.build-preview.outputs.deployment-url }}"
 
+      - name: Check URL accessibility
+        run: curl -I ${{ needs.build-preview.outputs.deployment-url }}
+
       - name: Run E2E Tests
         run: yarn playwright test
         env:
