@@ -93,15 +93,7 @@ jobs:
           VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY_PREVIEW }}
           VITE_SUPABASE_PROJECT_ID: ${{ secrets.VITE_SUPABASE_PROJECT_ID_PREVIEW }}
 
-      # 7. Exporta variáveis do preview e faz o build final
-      - name: Export Preview Envs
-        run: cat .vercel/.env.preview.local >> $GITHUB_ENV
 
-      #8 
-      - name: Check envs
-        run: |
-          echo "URL=$VITE_SUPABASE_URL"
-          echo "KEY=${#VITE_SUPABASE_PUBLISHABLE_KEY}"
 
       # 9. Deploy preview no Vercel
       - name: Deploy Preview
