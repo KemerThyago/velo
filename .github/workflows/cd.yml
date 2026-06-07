@@ -133,8 +133,14 @@ jobs:
       # 4. Instala as dependências do projeto
       - name: Install Dependencies
         run: yarn install --frozen-lockfile
+      # 4.1 Cache dos navegadores do Playwright
+      - name: Cache Playwright Browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-chromium-${{ hashFiles('**/yarn.lock') }}
 
-      # 5. Instalação do Chromium
+      # 5. Instalação do Chromium e dependências (O Playwright pula o download automaticamente se houver cache)
       - name: Install Playwright Browsers
         run: yarn playwright install --with-deps chromium
 
