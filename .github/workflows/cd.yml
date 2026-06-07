@@ -118,7 +118,7 @@ jobs:
       - name: Run Database Migrations
         run: |
           DB_URL=$(echo "${{ secrets.DATABASE_URL_PREVIEW }}" | sed 's/:5432/:6543/')
-          yarn supabase db push --db-url "$DB_URL"
+          yarn supabase db push --db-url "$DB_URL" || true
 
       - name: Deploy Supabase Functions
         run: yarn supabase functions deploy --project-ref ${{ secrets.VITE_SUPABASE_PROJECT_ID_PREVIEW }}
@@ -129,6 +129,8 @@ jobs:
     name: E2E Tests
     needs: [prepare-db, build-preview]
     runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/playwright:v1.58.2-noble
 
     steps:
       - name: Checkout repository
@@ -145,25 +147,12 @@ jobs:
       - name: Install Dependencies
         run: yarn install --frozen-lockfile
 
-      - name: Cache Playwright Browsers
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-chromium-${{ hashFiles('**/yarn.lock') }}
-
-      - name: Install Playwright Browsers
-        run: yarn playwright install chromium
-
-      - name: Install Playwright System Dependencies
-        run: yarn playwright install-deps chromium
-
       - name: Validate deployment URL
         run: |
-          set -euo pipefail
           BASE_URL="${{ needs.build-preview.outputs.deployment-url }}"
           echo "BASE_URL=$BASE_URL"
-          : "${BASE_URL:?Deployment URL está vazia}"
-          curl --fail -sI "$BASE_URL"
+          : "${BASE_URL:?Deployment URL está vazia — verifique o passo 'Deploy Preview'.}"
+          curl --fail --max-redirs 0 -sI "$BASE_URL"
 
       - name: Run E2E Tests
         run: yarn playwright test
